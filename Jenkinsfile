@@ -1,6 +1,6 @@
-def LABEL_ID = "questcode-${UUID.randomUUID().toString()}"
+def LABEL_ID = "jenkins-slave-node-${UUID.randomUUID().toString()}"
 podTemplate(
-    name: 'questcode', 
+    name: 'jenkins-slave-node', 
     namespace: 'devops', 
     label: LABEL_ID, 
     containers: [
@@ -15,12 +15,13 @@ podTemplate(
     def IMAGE_POSFIX = ""
     def KUBE_NAMESPACE
     def IMAGE_NAME = "questcode-frontend"
+    def APP_NAME = "questcode-frontend"
     def ENVIRONMENT
     def GIT_REPOS_URL = "git@gitlab.com:questcodeclass/frontend.git"
     def GIT_BRANCH 
-    def HELM_CHART_NAME = "questcode/frontend"
+    def HELM_CHART_NAME = "questcode/questcode-frontend"
     def HELM_DEPLOY_NAME
-    def CHARTMUSEUM_URL = "http://helm-chartmuseum:8080"
+    def CHARTMUSEUM_URL = "http://questcode-repo-chartmuseum:8080"
     def INGRESS_HOST = "questcode.org"
 
     // Start Pipeline
@@ -37,13 +38,13 @@ podTemplate(
                 KUBE_NAMESPACE = "staging"
                 ENVIRONMENT = "staging"
                 IMAGE_POSFIX = "-RC"
-                INGRESS_HOST = "staging.questcode.org"
+                INGRESS_HOST = ENVIRONMENT + "." + ENVIRONMENT
             } else {
                 def error = "Nao existe pipeline para a branch ${GIT_BRANCH}"
                 echo error
                 throw new Exception(error)
             }
-            HELM_DEPLOY_NAME = KUBE_NAMESPACE + "-frontend"
+            HELM_DEPLOY_NAME = APP_NAME + "-" + KUBE_NAMESPACE
             IMAGE_VERSION = sh returnStdout: true, script: 'sh read-package-version.sh'
             IMAGE_VERSION = IMAGE_VERSION.trim() + IMAGE_POSFIX
         }
