@@ -1,49 +1,13 @@
-def LABEL_ID = "questcode-${UUID.randomUUID().toString()}"
+def LABEL_ID = "jenkins-slave-node-${UUID.randomUUID().toString()}"
 podTemplate(
     name: 'jenkins-slave-node', 
     namespace: 'devops', 
     label: LABEL_ID, 
     containers: [
-        containerTemplate(
-            alwaysPullImage: false, 
-            args: 'cat', 
-            command: '/bin/sh -c', 
-            envVars: [], 
-            image: 'docker', 
-            livenessProbe: containerLivenessProbe(
-                execArgs: '', 
-                failureThreshold: 0, 
-                initialDelaySeconds: 0, 
-                periodSeconds: 0, 
-                successThreshold: 0, 
-                timeoutSeconds: 0
-            ), 
-            name: 'docker-container', 
-            ports: [], 
-            privileged: false, 
-            resourceLimitCpu: '', 
-            resourceLimitMemory: '', 
-            resourceRequestCpu: '', 
-            resourceRequestMemory: '', 
-            shell: null, 
-            ttyEnabled: true, 
-            workingDir: '/home/jenkins'
-        ),
-
-        containerTemplate(
-            args: 'cat', 
-            command: '/bin/sh -c', 
-            image: 'lachlanevenson/k8s-helm:v2.16.1', 
-            name: 'helm-container', 
-            ttyEnabled: true
-        )
+        containerTemplate(alwaysPullImage: false, args: 'cat', command: '/bin/sh -c', envVars: [], image: 'docker', livenessProbe: containerLivenessProbe(execArgs: '', failureThreshold: 0, initialDelaySeconds: 0, periodSeconds: 0, successThreshold: 0, timeoutSeconds: 0), name: 'docker-container', ports: [], privileged: false, resourceLimitCpu: '', resourceLimitMemory: '', resourceRequestCpu: '', resourceRequestMemory: '', shell: null, ttyEnabled: true, workingDir: '/home/jenkins'),
+        containerTemplate(args: 'cat', command: '/bin/sh -c', image: 'lachlanevenson/k8s-helm:v2.11.0', name: 'helm-container', ttyEnabled: true)
     ],
-    volumes: [
-        hostPathVolume(
-            hostPath: '/var/run/docker.sock', 
-            mountPath: '/var/run/docker.sock'
-        )
-    ], 
+    volumes: [hostPathVolume(hostPath: '/var/run/docker.sock', mountPath: '/var/run/docker.sock')], 
 ) 
 {
     def REPOS
