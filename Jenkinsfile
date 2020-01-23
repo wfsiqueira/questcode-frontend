@@ -4,7 +4,7 @@ podTemplate(
     namespace: 'devops', 
     label: LABEL_ID, 
     containers: [
-        containerTemplate(alwaysPullImage: false, args: 'cat', command: '/bin/sh -c', envVars: [], image: 'docker', livenessProbe: containerLivenessProbe(execArgs: '', failureThreshold: 0, initialDelaySeconds: 0, periodSeconds: 0, successThreshold: 0, timeoutSeconds: 0), name: 'docker-container', ports: [], privileged: false, resourceLimitCpu: '', resourceLimitMemory: '', resourceRequestCpu: '', resourceRequestMemory: '', shell: null, ttyEnabled: true, workingDir: '/home/jenkins'),
+        containerTemplate(args: 'cat', command: '/bin/sh -c', image: 'docker', name: 'docker-container', ttyEnabled: true, workingDir: '/home/jenkins'),
         containerTemplate(args: 'cat', command: '/bin/sh -c', image: 'lachlanevenson/k8s-helm:v2.11.0', name: 'helm-container', ttyEnabled: true)
     ],
     volumes: [hostPathVolume(hostPath: '/var/run/docker.sock', mountPath: '/var/run/docker.sock')], 
@@ -13,11 +13,10 @@ podTemplate(
     def REPOS
     def IMAGE_VERSION
     def IMAGE_POSFIX = ""
-    def KUBE_NAMESPACE
     def IMAGE_NAME = "questcode-frontend"
     def APP_NAME = "questcode-frontend"
+    def KUBE_NAMESPACE
     def ENVIRONMENT
-    def GIT_REPOS_URL = "git@gitlab.com:questcodeclass/frontend.git"
     def GIT_BRANCH 
     def HELM_CHART_NAME = "questcode/questcode-frontend"
     def HELM_DEPLOY_NAME
@@ -39,6 +38,11 @@ podTemplate(
                 ENVIRONMENT = "staging"
                 IMAGE_POSFIX = "-RC"
                 INGRESS_HOST = ENVIRONMENT + "." + ENVIRONMENT
+            } else if (GIT_BRANCH.equals("qa")) {
+                KUBE_NAMESPACE = "qa"
+                ENVIRONMENT = "staging"
+                IMAGE_POSFIX = "-QA"
+                INGRESS_HOST = ENVIRONMENT + "." + ENVIRONMENT
             } else {
                 def error = "Nao existe pipeline para a branch ${GIT_BRANCH}"
                 echo error
@@ -56,7 +60,6 @@ podTemplate(
                     sh "docker build -t ${DOCKER_HUB_USER}/${IMAGE_NAME}:${IMAGE_VERSION} . --build-arg NPM_ENV='${ENVIRONMENT}'"
                     sh "docker push ${DOCKER_HUB_USER}/${IMAGE_NAME}:${IMAGE_VERSION}"
                 }
-
             }
         }
         stage('Deploy') {
