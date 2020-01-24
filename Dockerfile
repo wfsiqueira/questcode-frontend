@@ -3,6 +3,7 @@ ARG NPM_ENV=development
 
 WORKDIR /usr/src/app
 COPY package*.json ./
+RUN npm audit fix --force
 RUN npm install
 COPY src/ ./src/
 COPY public/ ./public/
